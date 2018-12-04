@@ -1,23 +1,49 @@
+### set the working directory to the folder containing files to be normalized
 setwd("C:/Users/xNesTea/python/project_sem_3/new_dir/data/liver/")
+
+### open metadata storing info about condition and cel file name
 metadata <- read.delim("../liver.txt")
+
+### Read necessary libraries
 library(gcrma)
 library(arrayQualityMetrics)
-Data <- ReadAffy() ##read data in working directory
+
+### read in cel files
+Data <- ReadAffy()
+
+### perform normalization of the data
 eset <- gcrma(Data)
+
+### perform Quality control
 QC <- arrayQualityMetrics(expressionset=eset,outdir="normalized_l",force=TRUE,do.logtransform=TRUE)
+
+### save outliers file names nto variable
 outliers <- QC[["modules"]][["heatmap"]]@outliers@which
+
+### if there are outliers
 if(length(outliers) != 0){
+  ### make new df from metadata containing only outliers 
   df1 <- metadata[which(metadata$Array.Data.File %in% names(outliers)),]
+  ### save names of compounds present in outliers into variable
   o_compounds <- unique(df1$Parameter.Value.Compound.)
+  ### save names of all files for compounds above
   o_files <- metadata[which(metadata$Parameter.Value.Compound. %in% o_compounds),]$Array.Data.File
+  ### new dataframe storing only compounds which were not excluded
   df2 <- metadata[which(!(metadata$Array.Data.File %in% o_files)),]
+  ### remove these files
+  ### this is done since if we remove 1 cel file, we are left with just two and this is
+  ### too litle to get significant results, so we can remove all files for this compound
   unlink(o_files)
 }else{
+  ### for constant variable names -> this can be simplified, test later on
   df2 <- metadata
 }
+### same steps as above for data without outliers, normalization and QC
 Data <- ReadAffy()
 eset <- gcrma(Data)
 QC <- arrayQualityMetrics(expressionset=eset,outdir="normalized_after_outliers_l",force=TRUE,do.logtransform=TRUE)
+
+### write new metadata, after outliers detection
 write.table(df2, file = "./liver_after_o.txt",sep = "\t", row.names = F)
 
 
