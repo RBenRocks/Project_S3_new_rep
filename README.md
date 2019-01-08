@@ -1,4 +1,4 @@
 # Project_S3_new_rep
 # Project_S3_new_rep
 
-Rat drug repositioning project: Kajetan's Repo
+ Kajetan's B.Sc. project in rat drug repositioning
